@@ -1,0 +1,18 @@
+{
+  "$schema": "https://unpkg.com/release-it/schema/release-it.json",
+  "git": {
+    "requireBranch": "main",
+    "commitMessage": "Release v${version}",
+    "tagName": "v${version}",
+    "push": true
+  },
+  "hooks": {
+    "before:release": "npm run build"
+  },
+  "npm": {
+    "publish": true
+  },
+  "github": {
+    "release": true
+  }
+}
