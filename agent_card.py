@@ -251,6 +251,106 @@ class BurnMetrics:
     env_integrity: float  # 0.0 – 1.0
 
 
+@dataclass
+class ScoreResult:
+    total: int  # 0-1000
+    agents_score: int
+    mcp_score: int
+    models_score: int
+    burn_score: int
+    badges: List[str]
+
+
+class Scorer:
+    """Computes a 0-1000 score and rarity badges from scan results."""
+
+    BADGE_DEFS = [
+        ("🏆 MCP Collector", lambda a, m, mo, b: len(m) >= 10),
+        ("🦄 Multi-Agent", lambda a, m, mo, b: sum(1 for c in a if c.state == "RUNNING") >= 3),
+        ("🧬 Provider Hybrid", lambda a, m, mo, b: _provider_count(mo) >= 3),
+        ("🔥 Token Blazing", lambda a, m, mo, b: b.token_velocity >= 10_000),
+        ("💎 Century Club", lambda a, m, mo, b: b.session_count >= 100),
+        ("⚡ Full Stack", lambda a, m, mo, b: all(
+            x > 50 for x in [
+                _agents_pct(a), _mcp_pct(m), _models_pct(mo), _burn_pct(b)
+            ]
+        )),
+        ("🌐 Polyglot Coder", lambda a, m, mo, b: len(mo) >= 5),
+    ]
+
+    def score(
+        self, clis: List[CliStatus], mcp: List[McpTool],
+        models: List[ModelUsage], burn: BurnMetrics,
+    ) -> ScoreResult:
+        # Agents: 75 per running (cap 4) + 50 bonus for 3+
+        running = sum(1 for c in clis if c.state == "RUNNING")
+        agents_pts = min(running, 4) * 75 + (50 if running >= 3 else 0)
+
+        # MCP: 10 per server (cap 15) + 1 per tool (cap 50)
+        mcp_pts = min(len(mcp), 15) * 10 + min(sum(t.tool_count for t in mcp), 50)
+
+        # Models: 30 per unique model (cap 5) + 50 for 3+ providers
+        model_pts = min(len(models), 5) * 30 + (50 if _provider_count(models) >= 3 else 0)
+
+        # Burn: velocity scaled + sessions
+        vel = burn.token_velocity
+        vel_pts = 150 if vel >= 20_000 else 100 if vel >= 5_000 else 50 if vel >= 1_000 else 0
+        session_pts = min(burn.session_count // 10, 10) * 10
+        burn_pts = vel_pts + session_pts
+
+        total = agents_pts + mcp_pts + model_pts + burn_pts
+        total = min(total, 1000)
+
+        badges = [name for name, fn in self.BADGE_DEFS if fn(clis, mcp, models, burn)]
+
+        return ScoreResult(
+            total=total,
+            agents_score=agents_pts,
+            mcp_score=mcp_pts,
+            models_score=model_pts,
+            burn_score=burn_pts,
+            badges=badges,
+        )
+
+
+def _provider_count(models: List[ModelUsage]) -> int:
+    providers = set()
+    for m in models:
+        name = m.name.lower()
+        if "claude" in name:
+            providers.add("anthropic")
+        elif "gpt" in name or name.startswith("o3") or name.startswith("o4"):
+            providers.add("openai")
+        elif "gemini" in name:
+            providers.add("google")
+        elif "deepseek" in name:
+            providers.add("deepseek")
+        elif "qwen" in name:
+            providers.add("alibaba")
+        elif "llama" in name:
+            providers.add("meta")
+    return len(providers)
+
+
+def _agents_pct(clis: List[CliStatus]) -> float:
+    running = sum(1 for c in clis if c.state == "RUNNING")
+    return min(running / 4 * 100, 100)
+
+
+def _mcp_pct(mcp: List[McpTool]) -> float:
+    return min(len(mcp) / 15 * 100, 100)
+
+
+def _models_pct(models: List[ModelUsage]) -> float:
+    return min(len(models) / 5 * 100, 100)
+
+
+def _burn_pct(burn: BurnMetrics) -> float:
+    vel_score = min(burn.token_velocity / 20_000 * 100, 100)
+    session_score = min(burn.session_count / 100 * 100, 100)
+    return (vel_score + session_score) / 2
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 #  SCANNER ENGINE (local only — zero network)
 # ═══════════════════════════════════════════════════════════════════════════
