@@ -118,7 +118,8 @@ export function Dashboard({ demo }: DashboardProps) {
     );
   }
  
-  const running = clis.filter(c => c.state === 'RUNNING');
+  const clisDetected = clis.filter(c => c.state !== 'ABSENT');
+  const running = clisDetected.filter(c => c.state === 'RUNNING');
   const totalTools = mcp.reduce((sum, t) => sum + t.toolCount, 0);
 
   return (
@@ -144,7 +145,7 @@ export function Dashboard({ demo }: DashboardProps) {
             <Text bold color="blue">
               🎒 AGENTS · Pokémon Team ({running.length} running)
             </Text>
-            {clis.slice(0, 8).map((c, i) => (
+            {clisDetected.slice(0, 8).map((c, i) => (
               <Box key={i}>
                 <Text>
                   {c.icon} {c.name.padEnd(20)}{' '}
@@ -160,7 +161,7 @@ export function Dashboard({ demo }: DashboardProps) {
                 </Text>
               </Box>
             ))}
-            {clis.length > 8 && <Text color="gray">   … +{clis.length - 8} more</Text>}
+            {clisDetected.length > 8 && <Text color="gray">   … +{clisDetected.length - 8} more</Text>}
           </Box>
 
           {/* MCP */}

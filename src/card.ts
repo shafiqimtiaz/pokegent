@@ -27,8 +27,9 @@ export function renderTerminal(
   burn: BurnMetrics,
   scoreResult: ScoreResult,
 ): string {
-  const running = clis.filter(c => c.state === 'RUNNING');
-  const idle = clis.filter(c => c.state === 'IDLE' || c.state === 'DETECTED');
+  const clisDetected = clis.filter(c => c.state !== 'ABSENT');
+  const running = clisDetected.filter(c => c.state === 'RUNNING');
+  const idle = clisDetected.filter(c => c.state === 'IDLE' || c.state === 'DETECTED');
 
   // Pokémon section
   const agentLines: string[] = [];
@@ -39,7 +40,7 @@ export function renderTerminal(
       agentLines.push(`  ${c.icon} ${c.name.padEnd(18)} ○ ${c.state.toLowerCase()}`);
     }
   }
-  const remaining = clis.length - agentLines.length;
+  const remaining = clisDetected.length - agentLines.length;
   if (remaining > 0) agentLines.push(`     … +${remaining} more`);
 
   // Species movepool section

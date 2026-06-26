@@ -9,7 +9,8 @@ export function renderMarkdown(
   burn: BurnMetrics,
   scoreResult: ScoreResult,
 ): string {
-  const running = clis.filter(c => c.state === 'RUNNING');
+  const clisDetected = clis.filter(c => c.state !== 'ABSENT');
+  const running = clisDetected.filter(c => c.state === 'RUNNING');
   const rarity = rarityLabel(scoreResult.total);
 
   const lines: string[] = [
@@ -26,13 +27,11 @@ export function renderMarkdown(
 
   // Pokémon + Species Movepool rows
   const agentLines: string[] = [];
-  for (const c of clis.slice(0, 6)) {
+  for (const c of clisDetected.slice(0, 6)) {
     if (c.state === 'RUNNING') {
       agentLines.push(`${c.icon} ${c.name.padEnd(12)} ● run`);
     } else if (c.state === 'IDLE' || c.state === 'DETECTED') {
       agentLines.push(`${c.icon} ${c.name.padEnd(12)} ○ ${c.state.toLowerCase().slice(0, 4)}`);
-    } else {
-      agentLines.push(`${c.icon} ${c.name.padEnd(12)} ○ abs`);
     }
   }
 

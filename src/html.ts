@@ -9,8 +9,9 @@ export function renderHtml(
   burn: BurnMetrics,
   scoreResult: ScoreResult,
 ): string {
-  const running = clis.filter(c => c.state === 'RUNNING');
-  const idle = clis.filter(c => c.state === 'IDLE' || c.state === 'DETECTED');
+  const clisDetected = clis.filter(c => c.state !== 'ABSENT');
+  const running = clisDetected.filter(c => c.state === 'RUNNING');
+  const idle = clisDetected.filter(c => c.state === 'IDLE' || c.state === 'DETECTED');
   const rarity = rarityLabel(scoreResult.total);
   const sortedMcp = [...mcp].sort((a, b) => b.toolCount - a.toolCount);
 
@@ -472,9 +473,9 @@ export function renderHtml(
             </div>
           `;
         }).join('')}
-        ${clis.length > 6 ? `
+        ${clisDetected.length > 6 ? `
           <div class="item more-trigger" onclick="document.querySelectorAll('.hidden-agent').forEach(el => el.style.display = 'flex'); this.style.display = 'none';">
-            <span class="name" style="color: var(--color-text-inverse)">… +${clis.length - 6} MORE</span>
+            <span class="name" style="color: var(--color-text-inverse)">… +${clisDetected.length - 6} MORE</span>
             <span class="state" style="border-color: var(--color-border-subtle); color: var(--color-text-inverse)">Expand</span>
           </div>
         ` : ''}
