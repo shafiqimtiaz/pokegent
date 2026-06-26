@@ -382,9 +382,7 @@ class ShareCard:
         # Models section (top 5)
         model_lines = []
         for m in models[:5]:
-            bar_width = 10
-            filled = int(m.percentage / 100 * bar_width)
-            b = "█" * filled + "░" * (bar_width - filled)
+            b = bar(m.percentage, width=10)
             model_lines.append(f"  {m.name:<18s} {b} {m.percentage:4.1f}%")
 
         # MCP section (top 5)
@@ -476,9 +474,7 @@ class ShareCard:
 
         model_lines = []
         for m in models[:5]:
-            bar_w = 8
-            filled = int(m.percentage / 100 * bar_w)
-            b = "█" * filled + "░" * (bar_w - filled)
+            b = bar(m.percentage, width=8)
             model_lines.append(f"│  {m.name:<16s} {b} {m.percentage:4.1f}%            │")
 
         max_rows = max(len(agent_lines), len(model_lines))
