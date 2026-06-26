@@ -5,7 +5,6 @@ import { Command } from 'commander';
 import { scanClis, scanMcp, scanModels, scanBurn } from './scanner/index.js';
 import { score } from './scoring.js';
 import { renderHtml } from './html.js';
-import { execSync } from 'child_process';
 import { mockClis, mockMcp, mockModels, mockBurn } from './demo.js';
 import { VERSION } from './constants.js';
 import { Dashboard } from './cli.js';
@@ -28,7 +27,7 @@ program
 
 program
   .option('--demo', 'Run with mock data')
-  .option('--share', 'Generate HTML card + PNG screenshot on ~/Desktop')
+  .option('--share', 'Generate HTML card on ~/Desktop')
   .option('--json', 'Export raw data as JSON')
   .action(async (opts: Opts) => {
     if (opts.share || opts.json) {
@@ -63,31 +62,15 @@ async function runOneShot(opts: Opts) {
     return;
   }
 
-  // --share: HTML + PNG to Desktop
+  // --share: HTML to Desktop
   const html = renderHtml(clis, mcp, models, burn, scoreResult);
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
   const baseName = `pokegent-${ts}`;
   const desktopDir = path.join(os.homedir(), 'Desktop');
   const htmlPath = path.join(desktopDir, `${baseName}.html`);
-  const pngPath = path.join(desktopDir, `${baseName}.png`);
 
   await fs.writeFile(htmlPath, html);
   console.log(`✓ HTML saved → ${htmlPath}`);
-
-  let pngOk = false;
-  for (const browser of ['google-chrome', 'google-chrome-stable', 'chromium-browser', 'chromium']) {
-    try {
-      execSync(`${browser} --headless --disable-gpu --screenshot="${pngPath}" --window-size=850,1200 "file://${htmlPath}"`, { timeout: 15000, stdio: 'ignore' });
-      pngOk = true;
-      break;
-    } catch { /* try next */ }
-  }
-
-  if (pngOk) {
-    console.log(`✓ PNG saved → ${pngPath}`);
-  } else {
-    console.log('(PNG skipped — no Chrome/Chromium found)');
-  }
 }
 
 program.parse();

@@ -7,7 +7,6 @@ import { scanClis, scanMcp, scanModels, scanBurn } from './scanner/index.js';
 import { score } from './scoring.js';
 import { renderTerminal } from './card.js';
 import { renderHtml } from './html.js';
-import { execSync } from 'child_process';
 import { mockClis, mockMcp, mockModels, mockBurn } from './demo.js';
 import { APP_TITLE, REFRESH_INTERVAL, VERSION } from './constants.js';
 import type { CliStatus, McpTool, ModelUsage, BurnMetrics, ScoreResult } from './types.js';
@@ -82,30 +81,14 @@ export function Dashboard({ demo }: DashboardProps) {
       const baseName = `pokegent-${ts}`;
       const desktopDir = path.join(os.homedir(), 'Desktop');
       const htmlPath = path.join(desktopDir, `${baseName}.html`);
-      const pngPath = path.join(desktopDir, `${baseName}.png`);
 
       try {
         fs.writeFileSync(htmlPath, html);
+        setLastMessage(`✓ HTML saved → ~/Desktop/${baseName}.html`);
       } catch {
-        setLastMessage('✗ Failed to write to Desktop');
-        setTimeout(() => setLastMessage(''), 4000);
-        return;
+        setLastMessage('✗ Failed to write HTML to Desktop');
       }
-
-      let pngOk = false;
-      for (const browser of ['google-chrome', 'google-chrome-stable', 'chromium-browser', 'chromium']) {
-        try {
-          execSync(`${browser} --headless --disable-gpu --screenshot="${pngPath}" --window-size=850,1200 "file://${htmlPath}"`, { timeout: 15000, stdio: 'ignore' });
-          pngOk = true;
-          break;
-        } catch { /* try next */ }
-      }
-
-      setLastMessage(pngOk
-        ? `✓ Saved → ~/Desktop/${baseName}.html + .png`
-        : `✓ Saved → ~/Desktop/${baseName}.html (PNG: no Chrome found)`
-      );
-      setTimeout(() => setLastMessage(''), 5000);
+      setTimeout(() => setLastMessage(''), 4000);
     }
   });
  
