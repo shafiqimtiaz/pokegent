@@ -1,0 +1,43 @@
+{
+  "name": "agent-card",
+  "version": "2.0.0",
+  "description": "Terminal dashboard that shows your agentic AI coding ecosystem. Press 's' to flex.",
+  "type": "module",
+  "bin": {
+    "agent-card": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/index.js --external:ink --external:react --external:ps-list",
+    "start": "node dist/index.js"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "keywords": [
+    "agent",
+    "cli",
+    "tui",
+    "dashboard",
+    "ai",
+    "coding",
+    "terminal"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "ink": "^5.2.1",
+    "react": "^18.3.0",
+    "ps-list": "^9.0.0",
+    "glob": "^10.3.0",
+    "chalk": "^5.3.0",
+    "commander": "^15.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.3.0",
+    "esbuild": "^0.20.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  }
+}

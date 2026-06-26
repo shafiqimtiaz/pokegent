@@ -3,21 +3,20 @@
 
 # ⬡ AgentCard
 
-[![Python version](https://img.shields.io/badge/python-3.10%2B-blue?style=flat-square&logo=python&logoColor=white)](https://python.org)
-[![Textual](https://img.shields.io/badge/textual-8.0%2B-ff7700?style=flat-square)](https://textual.textualize.io)
-[![psutil](https://img.shields.io/badge/psutil-5.9%2B-3c873a?style=flat-square)](https://github.com/giampaolo/psutil)
+[![Node.js](https://img.shields.io/badge/node-18%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
+[![Ink](https://img.shields.io/badge/ink-5.0%2B-ff7700?style=flat-square)](https://github.com/vadimdemedes/ink)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 <br>
 [![GitHub release](https://img.shields.io/github/v/release/shafiqimtiaz/agent-card?style=flat-square&logo=github)](https://github.com/shafiqimtiaz/agent-card/releases)
 [![GitHub stars](https://img.shields.io/github/stars/shafiqimtiaz/agent-card?style=flat-square)](https://github.com/shafiqimtiaz/agent-card)
 
-Terminal dashboard that shows what's running in your agentic AI coding ecosystem — 16 CLI detectors, MCP server discovery, model usage charts, and token burn metrics, all in four dense quadrants.
+Terminal dashboard that shows what's running in your agentic AI coding ecosystem — 16 CLI detectors, MCP server discovery, model usage charts, token burn metrics, and a shareable HTML card.
 
-[Features](#features) • [Installation](#installation) • [Usage](#usage) • [Architecture](#architecture) • [How It Works](#how-it-works)
+[Features](#features) • [Installation](#installation) • [Usage](#usage) • [Share](#share-your-setup)
 
 </div>
 
-AgentCard is a single-file Python TUI that scans your local machine to give you a live picture of your AI tooling landscape. It detects running agentic CLI processes, finds installed MCP servers, tallies model usage from shell history and log files, and estimates token burn rates — all without ever making a network request.
+AgentCard is a Node.js TUI that scans your local machine to give you a live picture of your AI tooling landscape. It detects running agentic CLI processes, finds installed MCP servers, tallies model usage from shell history and log files, and estimates token burn rates — all without ever making a network request.
 
 > [!NOTE]
 > AgentCard runs entirely locally. No telemetry, no outbound calls, no external services. It reads the process table, configuration directories, and log files on your machine and renders the results in your terminal.
@@ -28,111 +27,91 @@ AgentCard is a single-file Python TUI that scans your local machine to give you 
 - **MCP discovery** — Aggregates tool servers from `~/.claude`, `~/.cursor`, `~/.opencode`, `~/.n8n` and other standard config paths
 - **Model frequency charts** — Parses terminal history and log files for model mentions, renders horizontal ASCII bars
 - **Token burn analytics** — Sessions, token velocity, input/output splits, and estimated cost from local logs
+- **Scoring system** — 0-1000 points across agents, MCP, models, and burn metrics
+- **7 rarity badges** — 🏆 MCP Collector, 🦄 Multi-Agent, 🧬 Provider Hybrid, 🔥 Token Blazing, 💎 Century Club, ⚡ Full Stack, 🌐 Polyglot Coder
+- **Shareable HTML card** — Generate a beautiful, self-contained HTML card for GitHub, Twitter, or anywhere
 - **2-second auto-refresh** — Live updates so you can watch your ecosystem change as you work
 - **Demo mode** — Built-in realistic mock data for previews, screenshots, or evaluation
 
 ## Installation
 
 ```bash
-pip install textual psutil
-```
+# Run directly with npx (zero install)
+npx agent-card
 
-> [!TIP]
-> The app degrades gracefully without psutil (process scanning falls back to config-directory detection only). Textual is the only hard requirement.
+# Or install globally
+npm install -g agent-card
+```
 
 ## Usage
 
 ```bash
-# Live mode — scans actual running processes and local configs
-python agent_card.py
+# Live TUI dashboard
+npx agent-card
 
-# Demo mode — realistic mock data, perfect for screenshots
-python agent_card.py --demo
+# Demo mode with mock data
+npx agent-card --demo
+
+# Generate shareable card + copy markdown to clipboard
+npx agent-card --share
+
+# Generate HTML card file
+npx agent-card --html
+
+# Export raw JSON data
+npx agent-card --json
 ```
 
-### Keyboard shortcuts
+### Keyboard shortcuts (TUI mode)
 
 | Key | Action |
 |-----|--------|
 | `q` | Quit the application |
 | `r` | Force an immediate refresh |
-| `d` | Toggle between demo and live scanning |
-| `t` | Toggle dark/light color theme |
+| `s` | Share card (copy markdown to clipboard) |
+| `h` | Generate HTML card |
 
-## Architecture
+## Share your setup
 
-The dashboard is divided into four quadrants, each responsible for a different slice of data. A single `Scanner` class collects all information locally every two seconds.
+The viral mechanic: **press `s` to copy a markdown card to clipboard, or `h` to generate an HTML file.**
 
-```mermaid
-graph TD
-    subgraph Scanner
-        A[Process Table] --> Q1
-        B[Config Files] --> Q2
-        C[Log Files + History] --> Q3
-        D[Log Files] --> Q4
-    end
-    Q1[CliEcosystemPanel] --> App
-    Q2[McpPanel] --> App
-    Q3[ModelChartPanel] --> App
-    Q4[BurnPanel] --> App
-    App[AgentCard TUI - 2s refresh loop]
+### Markdown card (for Discord, GitHub, Slack)
+
+```bash
+npx agent-card --share
 ```
 
-## How it works
+This prints the terminal card AND copies a markdown version to your clipboard. Paste it anywhere.
 
-### Quadrant 1 — Active CLI Ecosystem
+### HTML card (for GitHub Pages, Twitter, anywhere)
 
-Scans the OS process table (via psutil) and checks well-known configuration directories for each of the 16 target CLIs. Every tool is shown with one of four states:
-
-| State | Meaning |
-|-------|---------|
-| 🟢 `RUNNING` | Active process found (PID, CPU, memory, uptime shown) |
-| 🟡 `IDLE` | Configuration directory present but no active process |
-| ⚪ `DETECTED` | Partial traces (e.g. VS Code extension artifacts) |
-| `ABSENT` | Nothing found |
-
-### Quadrant 2 — Skills & MCP Discovery
-
-Reads MCP server configuration files from standard locations (`~/.claude/mcpServers.json`, `~/.cursor/mcp.json`, `~/.n8n/mcp.json`, and others) and aggregates the servers found, grouped by source tool. Each entry shows the server name and the number of tools it exposes.
-
-### Quadrant 3 — Most Used Models
-
-Walks log directories (`~/.claude`, `~/.cursor`, etc.) and shell history files (`~/.bash_history`, `~/.zsh_history`) for model name patterns. The top models are ranked with horizontal ASCII progress bars showing relative frequency.
-
-```text
-claude-4-sonnet   ████████████████████ 31.5% (847)
-claude-3.7-sonnet █████████████████░░░ 23.2% (623)
-gpt-4.1           ███████████████░░░░░ 15.3% (412)
-claude-4-opus     ██████████░░░░░░░░░░ 10.7% (289)
-o4-mini           █████░░░░░░░░░░░░░░░  7.4% (198)
+```bash
+npx agent-card --html
 ```
 
-### Quadrant 4 — Performance & Burn
+This generates `agent-card.html` — a self-contained, dark-themed, animated card with OpenGraph meta tags for beautiful link previews. Drop it in a repo, open it in a browser, or share the raw link.
 
-Extracts token usage from JSONL and JSON log files and computes:
+## Scoring
 
-- Total token volume with input/output breakdown
-- Estimated cost (blended rate: $3/M input, $15/M output tokens)
-- Token velocity (tokens per minute)
-- Session count and average tokens per session
-- Environment integrity index — verifies `python3`, `node`, `git`, and `pip3` are on PATH
+Your setup gets scored 0-1000 points:
 
-```text
-┌─ Token Economics ────────────────────┐
-│ Total Tokens      2.8M               │
-│   Input  ████████████████░░ 66.7%    │
-│   Output ████████░░░░░░░░░░ 33.3%    │
-├─ Financial ──────────────────────────┤
-│ Est. Cost        $18.4700            │
-│ Burn Rate        $0.0385/min         │
-│ Velocity         14.2K/min           │
-├─ Sessions ───────────────────────────┤
-│ Sessions             142             │
-│ Avg/Session       20.1K              │
-├─ Environment ────────────────────────┤
-│ Integrity  █████████████████░░░ 85%  │
-└──────────────────────────────────────┘
-```
+| Dimension | Max Points | How |
+|-----------|-----------|-----|
+| Agents running | 350 | 75 per running agent (cap 4) + 50 bonus for 3+ simultaneous |
+| MCP servers/tools | 200 | 10 per server (cap 15) + 1 per tool (cap 50) |
+| Model diversity | 200 | 30 per unique model (cap 5) + 50 for using 3+ providers |
+| Token velocity + sessions | 250 | Velocity tiers + session count |
+
+### Rarity tiers
+
+| Score | Tier |
+|-------|------|
+| 900+ | 🌟 LEGENDARY — Top 1% |
+| 750+ | 💎 EPIC — Top 5% |
+| 600+ | 🥇 RARE — Top 15% |
+| 400+ | 🥈 UNCOMMON — Top 35% |
+| 200+ | 🥉 COMMON — Top 60% |
+| <200 | 🌱 STARTER — everyone starts here |
 
 ## What gets scanned
 
@@ -161,27 +140,28 @@ Extracts token usage from JSONL and JSON log files and computes:
 </details>
 
 <details>
-<summary><strong>Scanned model names (20 patterns)</strong></summary>
+<summary><strong>Scanned model names (19 patterns)</strong></summary>
 
 claude-4-opus, claude-4-sonnet, claude-3.7-sonnet, claude-3.5-sonnet, claude-3-haiku, gpt-4.1, gpt-4o, gpt-4-turbo, o4-mini, o3, o3-mini, o3-pro, gemini-2.5-pro, gemini-2.5-flash, gemini-2.0-flash, deepseek-v3, deepseek-r1, qwen-3, llama-4
 
 </details>
 
-> [!TIP]
-> The scanner walks common log directories up to 4 levels deep and recognizes `.log`, `.jsonl`, `.json`, and `.txt` files. Custom log locations can be added by modifying the `scan_dirs` list in `scan_models()` and `scan_burn()`.
-
 ## Tech stack
 
-- **[Textual](https://textual.textualize.io)** — Python TUI framework (v8+). Provides reactive widgets, timers, and CSS-based layout.
-- **[psutil](https://github.com/giampaolo/psutil)** — Cross-platform process and system monitoring.
-- **Python 3.10+ standard library** — All scanning logic uses built-in modules (`json`, `re`, `pathlib`, `os`, `subprocess`). No other dependencies.
+- **[Ink](https://github.com/vadimdemedes/ink)** — React for CLI. Provides the TUI framework.
+- **[ps-list](https://github.com/sindresorhus/ps-list)** — Cross-platform process listing.
+- **Node.js 18+** — All scanning logic uses built-in modules (`fs`, `path`, `child_process`).
 
 ## Running from source
 
 ```bash
 git clone https://github.com/shafiqimtiaz/agent-card.git
 cd agent-card
-pip install textual psutil
-python agent_card.py --demo
-python agent_card.py
+npm install
+npx tsx src/index.ts --demo
+npx tsx src/index.ts
 ```
+
+## Privacy
+
+AgentCard runs 100% locally. No data leaves your machine. No telemetry. No analytics. No network requests. Your AI tooling data stays on your computer.
