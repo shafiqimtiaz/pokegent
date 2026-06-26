@@ -358,6 +358,191 @@ def _burn_pct(burn: BurnMetrics) -> float:
     return (vel_score + session_score) / 2
 
 
+class ShareCard:
+    """Renders the agent card as terminal output and markdown."""
+
+    def render_terminal(
+        self, clis: List[CliStatus], mcp: List[McpTool],
+        models: List[ModelUsage], burn: BurnMetrics, score: ScoreResult,
+    ) -> str:
+        running = [c for c in clis if c.state == "RUNNING"]
+        idle = [c for c in clis if c.state in ("IDLE", "DETECTED")]
+
+        # Agents section (top 6)
+        agent_lines = []
+        for c in (running + idle)[:6]:
+            if c.state == "RUNNING":
+                agent_lines.append(f"  {c.icon} {c.name:<18s} ● {c.cpu_pct:4.1f}% CPU")
+            else:
+                agent_lines.append(f"  {c.icon} {c.name:<18s} ○ {c.state.lower()}")
+        remaining = len(clis) - len(agent_lines)
+        if remaining > 0:
+            agent_lines.append(f"     … +{remaining} more")
+
+        # Models section (top 5)
+        model_lines = []
+        for m in models[:5]:
+            bar_width = 10
+            filled = int(m.percentage / 100 * bar_width)
+            b = "█" * filled + "░" * (bar_width - filled)
+            model_lines.append(f"  {m.name:<18s} {b} {m.percentage:4.1f}%")
+
+        # MCP section (top 5)
+        mcp_lines = []
+        for t in sorted(mcp, key=lambda x: -x.tool_count)[:5]:
+            tc = f"[{t.tool_count}]" if t.tool_count else ""
+            mcp_lines.append(f"  ◆ {t.name:<16s} {tc}")
+        mcp_remaining = len(mcp) - 5
+        if mcp_remaining > 0:
+            mcp_lines.append(f"     … +{mcp_remaining} more")
+
+        # Burn section
+        burn_lines = [
+            f"  Tokens    {fmt_tokens(burn.total_tokens)}",
+            f"  Cost      ${burn.estimated_cost_usd:.2f}/mo",
+            f"  Velocity  {fmt_tokens(burn.token_velocity)}/min",
+            f"  Sessions  {burn.session_count}",
+            f"  Integrity {bar(burn.env_integrity * 100, 10)} {burn.env_integrity*100:.0f}%",
+        ]
+
+        # Badges
+        badge_lines = [f"  {b}" for b in score.badges] if score.badges else ["  (none yet)"]
+
+        # Rarity
+        rarity = _rarity_label(score.total)
+
+        w = 58
+        lines = [
+            f"┌{'─' * w}┐",
+            f"│  ⬡ AgentCard{' ' * (w - 18)}{score.total:>4d} pts │",
+            f"│{'━' * w}│",
+            f"│{' ' * w}│",
+            f"│  🤖 AGENTS ({len(running)} running){' ' * 24}📊 MODELS{' ' * 13}│",
+        ]
+
+        # Two-column layout: agents + models side by side
+        max_rows = max(len(agent_lines), len(model_lines), 1)
+        for i in range(max_rows):
+            left = agent_lines[i] if i < len(agent_lines) else " " * 28
+            right = model_lines[i] if i < len(model_lines) else ""
+            lines.append(f"│  {left:<28s}  {right:<24s}│")
+
+        lines.append(f"│{' ' * w}│")
+        lines.append(f"│  🛠️ MCP ({len(mcp)} servers, {sum(t.tool_count for t in mcp)} tools){' ' * 13}💳 BURN{' ' * 15}│")
+
+        # Two-column: MCP + Burn
+        max_rows2 = max(len(mcp_lines), len(burn_lines), 1)
+        for i in range(max_rows2):
+            left = mcp_lines[i] if i < len(mcp_lines) else " " * 26
+            right = burn_lines[i] if i < len(burn_lines) else ""
+            lines.append(f"│  {left:<26s}  {right:<24s}│")
+
+        lines.append(f"│{' ' * w}│")
+        lines.append(f"│  🏆 RARITY{' ' * 18}🏅 BADGES{' ' * 17}│")
+        lines.append(f"│  {rarity:<26s}  {badge_lines[0]:<24s}│")
+        for bl in badge_lines[1:]:
+            lines.append(f"│  {' ' * 26}  {bl:<24s}│")
+
+        lines.append(f"│{' ' * w}│")
+        lines.append(f"│{'━' * w}│")
+        lines.append(f"│  agent-card · python · privacy-first (zero network){' ' * 5}│")
+        lines.append(f"└{'─' * w}┘")
+
+        return "\n".join(lines)
+
+    def render_markdown(
+        self, clis: List[CliStatus], mcp: List[McpTool],
+        models: List[ModelUsage], burn: BurnMetrics, score: ScoreResult,
+    ) -> str:
+        running = [c for c in clis if c.state == "RUNNING"]
+        rarity = _rarity_label(score.total)
+
+        lines = [
+            "```",
+            f"┌──────────────────────────────────────────────────────────┐",
+            f"│  ⬡ AgentCard                                    {score.total:>4d} pts │",
+            f"│━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━│",
+            f"│                                                          │",
+            f"│  🤖 AGENTS ({len(running)} running)           📊 MODELS              │",
+        ]
+
+        # Agents + Models
+        agent_lines = []
+        for c in clis[:6]:
+            if c.state == "RUNNING":
+                agent_lines.append(f"│  {c.icon} {c.name:<16s}  ● running              │")
+            elif c.state in ("IDLE", "DETECTED"):
+                agent_lines.append(f"│  {c.icon} {c.name:<16s}  ○ {c.state.lower():<20s}│")
+
+        model_lines = []
+        for m in models[:5]:
+            bar_w = 8
+            filled = int(m.percentage / 100 * bar_w)
+            b = "█" * filled + "░" * (bar_w - filled)
+            model_lines.append(f"│  {m.name:<16s} {b} {m.percentage:4.1f}%            │")
+
+        max_rows = max(len(agent_lines), len(model_lines))
+        for i in range(max_rows):
+            left = agent_lines[i] if i < len(agent_lines) else "│" + " " * 57 + "│"
+            right = model_lines[i] if i < len(model_lines) else ""
+            lines.append(f"{left[:30]}  {right}")
+
+        lines.append(f"│                                                          │")
+        lines.append(f"│  🛠️ MCP ({len(mcp)} srv, {sum(t.tool_count for t in mcp)} tools)       💳 BURN                 │")
+
+        # MCP + Burn
+        mcp_lines = []
+        for t in sorted(mcp, key=lambda x: -x.tool_count)[:5]:
+            tc = f"[{t.tool_count}]" if t.tool_count else ""
+            mcp_lines.append(f"│  ◆ {t.name:<14s} {tc:<6s}                 │")
+
+        burn_lines = [
+            f"│  Tokens   {fmt_tokens(burn.total_tokens):<10s}               │",
+            f"│  Cost     ${burn.estimated_cost_usd:.2f}/mo              │",
+            f"│  Velocity {fmt_tokens(burn.token_velocity)}/min              │",
+            f"│  Sessions {burn.session_count:<10d}               │",
+        ]
+
+        max_rows2 = max(len(mcp_lines), len(burn_lines))
+        for i in range(max_rows2):
+            left = mcp_lines[i] if i < len(mcp_lines) else "│" + " " * 30
+            right = burn_lines[i] if i < len(burn_lines) else ""
+            lines.append(f"{left[:30]}  {right}")
+
+        lines.append(f"│                                                          │")
+
+        # Badges
+        if score.badges:
+            lines.append(f"│  🏆 {', '.join(score.badges[:3]):<52s}│")
+            if len(score.badges) > 3:
+                lines.append(f"│     {', '.join(score.badges[3:]):<52s}│")
+        else:
+            lines.append(f"│  🏆 (collect badges by running more tools){' ' * 14}│")
+
+        lines.append(f"│                                                          │")
+        lines.append(f"│  {rarity:<56s}│")
+        lines.append(f"│━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━│")
+        lines.append(f"│  agent-card · github.com/shafiqimtiaz/agent-card        │")
+        lines.append(f"└──────────────────────────────────────────────────────────┘")
+        lines.append("```")
+
+        return "\n".join(lines)
+
+
+def _rarity_label(score: int) -> str:
+    if score >= 900:
+        return "🌟 LEGENDARY — Top 1%"
+    if score >= 750:
+        return "💎 EPIC — Top 5%"
+    if score >= 600:
+        return "🥇 RARE — Top 15%"
+    if score >= 400:
+        return "🥈 UNCOMMON — Top 35%"
+    if score >= 200:
+        return "🥉 COMMON — Top 60%"
+    return "🌱 STARTER — everyone starts here"
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 #  SCANNER ENGINE (local only — zero network)
 # ═══════════════════════════════════════════════════════════════════════════
