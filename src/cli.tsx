@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, Text, useApp, useInput } from 'ink';
 import { scanClis, scanMcp, scanModels, scanBurn } from './scanner/index.js';
 import { score } from './scoring.js';
@@ -9,11 +9,11 @@ import { copyToClipboard } from './clipboard.js';
 import { mockClis, mockMcp, mockModels, mockBurn } from './demo.js';
 import { APP_TITLE, REFRESH_INTERVAL, VERSION } from './constants.js';
 import type { CliStatus, McpTool, ModelUsage, BurnMetrics, ScoreResult } from './types.js';
-
+ 
 interface DashboardProps {
   demo: boolean;
 }
-
+ 
 export function Dashboard({ demo }: DashboardProps) {
   const { exit } = useApp();
   const [clis, setClis] = useState<CliStatus[]>([]);
@@ -23,8 +23,11 @@ export function Dashboard({ demo }: DashboardProps) {
   const [scoreResult, setScoreResult] = useState<ScoreResult | null>(null);
   const [scanTime, setScanTime] = useState(0);
   const [lastMessage, setLastMessage] = useState('');
-
+  const scanningRef = useRef(false);
+ 
   const runScan = useCallback(async () => {
+    if (scanningRef.current) return;
+    scanningRef.current = true;
     const t0 = Date.now();
     try {
       let c: CliStatus[], m: McpTool[], mo: ModelUsage[], b: BurnMetrics;
@@ -50,15 +53,24 @@ export function Dashboard({ demo }: DashboardProps) {
       setScanTime((Date.now() - t0) / 1000);
     } catch (err) {
       setLastMessage(`Scan error: ${err}`);
+    } finally {
+      scanningRef.current = false;
     }
   }, [demo]);
-
+ 
   useEffect(() => {
-    runScan();
-    const interval = setInterval(runScan, REFRESH_INTERVAL);
-    return () => clearInterval(interval);
+    let timeoutId: NodeJS.Timeout;
+    
+    async function tick() {
+      await runScan();
+      timeoutId = setTimeout(tick, REFRESH_INTERVAL);
+    }
+    
+    tick();
+    
+    return () => clearTimeout(timeoutId);
   }, [runScan]);
-
+ 
   useInput((input, key) => {
     if (input === 'q') exit();
     if (input === 'r') runScan();
@@ -75,7 +87,33 @@ export function Dashboard({ demo }: DashboardProps) {
       setTimeout(() => setLastMessage(''), 3000);
     }
   });
-
+ 
+  if (clis.length === 0) {
+    return (
+      <Box flexDirection="column" padding={1}>
+        <Box justifyContent="space-between" marginBottom={1}>
+          <Text bold color="cyan">
+            {APP_TITLE} <Text color="gray">v{VERSION}</Text>
+          </Text>
+        </Box>
+        <Box marginTop={2} marginBottom={2} flexDirection="column" gap={1}>
+          <Text bold color="yellow">
+            ◓ Scanning Pokémon coding ecosystem...
+          </Text>
+          <Text color="gray">
+            (First live scan takes a few seconds to recursively search local logs & history)
+          </Text>
+        </Box>
+        <Box marginTop={1} justifyContent="space-between">
+          <Text color="gray">
+            <Text color="green">● LIVE</Text> │ Scan: {scanTime.toFixed(1)}s │ {new Date().toLocaleTimeString()}
+          </Text>
+          <Text color="gray">q quit</Text>
+        </Box>
+      </Box>
+    );
+  }
+ 
   const running = clis.filter(c => c.state === 'RUNNING');
   const totalTools = mcp.reduce((sum, t) => sum + t.toolCount, 0);
 
