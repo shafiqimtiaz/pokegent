@@ -1157,6 +1157,7 @@ class AgentCardApp(App):
         Binding("r", "force_refresh", "Refresh"),
         Binding("d", "toggle_demo", "Demo Mode"),
         Binding("t", "toggle_theme", "Theme"),
+        Binding("s", "share_card", "Share"),
     ]
 
     # ── Reactive state ──────────────────────────────────────────────────
@@ -1168,6 +1169,9 @@ class AgentCardApp(App):
         super().__init__(**kwargs)
         self.demo_mode = demo
         self.scanner = Scanner(demo=demo)
+        self.scorer = Scorer()
+        self.share_card = ShareCard()
+        self._last_score: Optional[ScoreResult] = None
         self._timer: Optional[Timer] = None
 
     # ── Compose ─────────────────────────────────────────────────────────
@@ -1211,6 +1215,8 @@ class AgentCardApp(App):
             mcp = self.scanner.scan_mcp()
             models = self.scanner.scan_models()
             burn = self.scanner.scan_burn()
+            score = self.scorer.score(clis, mcp, models, burn)
+            self._last_score = score
         except Exception as exc:
             self.bell()
             self.notify(f"Scan error: {exc}", severity="error")
@@ -1228,6 +1234,9 @@ class AgentCardApp(App):
         status_bar.scan_time = elapsed
         status_bar.mode = "DEMO" if self.demo_mode else "LIVE"
 
+        if self._last_score:
+            self.title = f"{APP_TITLE}  ·  {self._last_score.total} pts"
+
     # ── Actions ─────────────────────────────────────────────────────────
     def action_force_refresh(self) -> None:
         self._run_scan()
@@ -1240,6 +1249,35 @@ class AgentCardApp(App):
 
     def action_toggle_theme(self) -> None:
         self.dark = not self.dark
+
+    def action_share_card(self) -> None:
+        """Render share card and copy markdown to clipboard."""
+        if not self._last_score:
+            self.notify("Wait for first scan to complete", severity="warning")
+            return
+
+        clis = self.query_one("#cli_panel", CliEcosystemPanel).cli_statuses
+        mcp = self.query_one("#mcp_panel", McpPanel).mcp_tools
+        models = self.query_one("#model_panel", ModelChartPanel).model_usages
+        burn = self.query_one("#burn_panel", BurnPanel).burn
+        if not burn:
+            burn = self.scanner._mock_burn()
+
+        score = self._last_score
+
+        # Render terminal card
+        terminal_card = self.share_card.render_terminal(clis, mcp, models, burn, score)
+
+        # Render markdown for clipboard
+        md_card = self.share_card.render_markdown(clis, mcp, models, burn, score)
+        copied = copy_to_clipboard(md_card)
+
+        # Show in a notification overlay
+        self.notify(
+            f"{'✓ Card copied to clipboard!' if copied else 'Card rendered (clipboard unavailable)'}\n"
+            f"Score: {score.total} pts · {len(score.badges)} badges",
+            timeout=5,
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════════
