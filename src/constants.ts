@@ -12,25 +12,27 @@ export interface CliSignature {
   config: string[];
   icon: string;
   pokemonId: number;
+  pokemonSlug: string;
+  pokemonName: string;
 }
 
 export const CLI_SIGNATURES: Record<string, CliSignature> = {
-  'Mewtwo':        { process: ['claude', 'claude-code'],            config: ['~/.claude', '~/.claude.json', '~/.config/claude'],             icon: '🔮', pokemonId: 150 },
-  'Venusaur':      { process: ['codex', 'openai-codex'],            config: ['~/.codex', '~/.config/codex'],                                icon: '🍃', pokemonId: 3 },
-  'Blastoise':     { process: ['copilot', 'github-copilot'],        config: ['~/.copilot', '~/.config/github-copilot'],                     icon: '🐢', pokemonId: 9 },
-  'Pikachu':       { process: ['gemini', 'gemini-cli'],             config: ['~/.gemini', '~/.config/gemini'],                              icon: '⚡', pokemonId: 25 },
-  'Eevee':         { process: ['cursor'],                           config: ['~/.cursor', '~/.cursor-server'],                              icon: '🦊', pokemonId: 133 },
-  'Charizard':     { process: ['amp', 'amp-cli'],                   config: ['~/.amp', '~/.config/amp'],                                    icon: '🔥', pokemonId: 6 },
-  'Charmander':    { process: ['cline'],                            config: ['~/.cline', '~/.vscode/extensions/saoudrizwan.claude-dev-*'],  icon: '🦎', pokemonId: 4 },
-  'Gengar':        { process: ['roo', 'roo-code'],                  config: ['~/.roo', '~/.roo-code'],                                      icon: '👻', pokemonId: 94 },
-  'Snorlax':       { process: ['kilo', 'kilo-code'],                config: ['~/.kilo', '~/.kilo-code'],                                    icon: '🐻', pokemonId: 143 },
-  'Zubat':         { process: ['kiro'],                             config: ['~/.kiro', '~/.config/kiro'],                                  icon: '🦇', pokemonId: 41 },
-  'Jigglypuff':    { process: ['crush'],                            config: ['~/.crush'],                                                   icon: '🎈', pokemonId: 39 },
-  'Ditto':         { process: ['opencode'],                         config: ['~/.opencode', '~/.config/opencode'],                          icon: '🍮', pokemonId: 132 },
-  'Machamp':       { process: ['factory', 'factory-droid'],         config: ['~/.factory-droid'],                                           icon: '💪', pokemonId: 68 },
-  'Rayquaza':      { process: ['antigravity', 'ag-cli'],            config: ['~/.antigravity'],                                             icon: '🐉', pokemonId: 384 },
-  'Lapras':        { process: ['kimi', 'kimi-cli'],                 config: ['~/.kimi', '~/.config/kimi'],                                  icon: '⛵', pokemonId: 131 },
-  'Dragonite':     { process: ['qwen', 'qwen-code'],               config: ['~/.qwen', '~/.config/qwen'],                                  icon: '🐉', pokemonId: 149 },
+  'claude-code':   { process: ['claude', 'claude-code'],            config: ['~/.claude', '~/.claude.json', '~/.config/claude'],             icon: '🔮', pokemonId: 150, pokemonSlug: 'mewtwo',      pokemonName: 'Mewtwo' },
+  'codex':         { process: ['codex', 'openai-codex'],            config: ['~/.codex', '~/.config/codex'],                                icon: '🍃', pokemonId: 3,   pokemonSlug: 'venusaur',    pokemonName: 'Venusaur' },
+  'copilot':       { process: ['copilot', 'github-copilot'],        config: ['~/.copilot', '~/.config/github-copilot'],                     icon: '🐢', pokemonId: 9,   pokemonSlug: 'blastoise',   pokemonName: 'Blastoise' },
+  'gemini-cli':    { process: ['gemini', 'gemini-cli'],             config: ['~/.gemini', '~/.config/gemini'],                              icon: '⚡', pokemonId: 25,  pokemonSlug: 'pikachu',     pokemonName: 'Pikachu' },
+  'cursor':        { process: ['cursor'],                           config: ['~/.cursor', '~/.cursor-server'],                              icon: '🦊', pokemonId: 133, pokemonSlug: 'eevee',       pokemonName: 'Eevee' },
+  'amp':           { process: ['amp', 'amp-cli'],                   config: ['~/.amp', '~/.config/amp'],                                    icon: '🔥', pokemonId: 6,   pokemonSlug: 'charizard',   pokemonName: 'Charizard' },
+  'cline':         { process: ['cline'],                            config: ['~/.cline', '~/.vscode/extensions/saoudrizwan.claude-dev-*'],  icon: '🦎', pokemonId: 4,   pokemonSlug: 'charmander',  pokemonName: 'Charmander' },
+  'roo-code':      { process: ['roo', 'roo-code'],                  config: ['~/.roo', '~/.roo-code'],                                      icon: '👻', pokemonId: 94,  pokemonSlug: 'gengar',      pokemonName: 'Gengar' },
+  'kilo-code':     { process: ['kilo', 'kilo-code'],                config: ['~/.kilo', '~/.kilo-code'],                                    icon: '🐻', pokemonId: 143, pokemonSlug: 'snorlax',     pokemonName: 'Snorlax' },
+  'kiro':          { process: ['kiro'],                             config: ['~/.kiro', '~/.config/kiro'],                                  icon: '🦇', pokemonId: 41,  pokemonSlug: 'zubat',       pokemonName: 'Zubat' },
+  'crush':         { process: ['crush'],                            config: ['~/.crush'],                                                   icon: '🎈', pokemonId: 39,  pokemonSlug: 'jigglypuff',  pokemonName: 'Jigglypuff' },
+  'opencode':      { process: ['opencode'],                         config: ['~/.opencode', '~/.config/opencode'],                          icon: '🍮', pokemonId: 132, pokemonSlug: 'ditto',       pokemonName: 'Ditto' },
+  'factory':       { process: ['factory', 'factory-droid'],         config: ['~/.factory-droid'],                                           icon: '💪', pokemonId: 68,  pokemonSlug: 'machamp',     pokemonName: 'Machamp' },
+  'antigravity':   { process: ['antigravity', 'ag-cli'],            config: ['~/.antigravity'],                                             icon: '🐉', pokemonId: 384, pokemonSlug: 'rayquaza',    pokemonName: 'Rayquaza' },
+  'kimi':          { process: ['kimi', 'kimi-cli'],                 config: ['~/.kimi', '~/.config/kimi'],                                  icon: '⛵', pokemonId: 131, pokemonSlug: 'lapras',      pokemonName: 'Lapras' },
+  'qwen':          { process: ['qwen', 'qwen-code'],               config: ['~/.qwen', '~/.config/qwen'],                                  icon: '🐉', pokemonId: 149, pokemonSlug: 'dragonite',   pokemonName: 'Dragonite' },
 };
 
 export interface McpScanPath {

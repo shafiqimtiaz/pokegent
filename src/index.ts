@@ -4,19 +4,18 @@ import { render } from 'ink';
 import { Command } from 'commander';
 import { scanClis, scanMcp, scanModels, scanBurn } from './scanner/index.js';
 import { score } from './scoring.js';
-import { renderTerminal } from './card.js';
-import { renderMarkdown } from './markdown.js';
 import { renderHtml } from './html.js';
-import { copyToClipboard } from './clipboard.js';
+import { execSync } from 'child_process';
 import { mockClis, mockMcp, mockModels, mockBurn } from './demo.js';
 import { VERSION } from './constants.js';
 import { Dashboard } from './cli.js';
 import fs from 'fs/promises';
+import path from 'path';
+import os from 'os';
 
 interface Opts {
   demo?: boolean;
   share?: boolean;
-  html?: boolean;
   json?: boolean;
 }
 
@@ -29,11 +28,10 @@ program
 
 program
   .option('--demo', 'Run with mock data')
-  .option('--share', 'Generate shareable card and copy to clipboard')
-  .option('--html', 'Generate HTML card file')
+  .option('--share', 'Generate HTML card + PNG screenshot on ~/Desktop')
   .option('--json', 'Export raw data as JSON')
   .action(async (opts: Opts) => {
-    if (opts.share || opts.html || opts.json) {
+    if (opts.share || opts.json) {
       await runOneShot(opts);
     } else {
       const { waitUntilExit } = render(React.createElement(Dashboard, { demo: opts.demo ?? false }));
@@ -65,21 +63,31 @@ async function runOneShot(opts: Opts) {
     return;
   }
 
-  if (opts.html) {
-    const html = renderHtml(clis, mcp, models, burn, scoreResult);
-    const outPath = 'pokegent.html';
-    await fs.writeFile(outPath, html);
-    console.log(`✓ HTML card written to ${outPath}`);
-    return;
+  // --share: HTML + PNG to Desktop
+  const html = renderHtml(clis, mcp, models, burn, scoreResult);
+  const ts = new Date().toISOString().replace(/[:.]/g, '-');
+  const baseName = `pokegent-${ts}`;
+  const desktopDir = path.join(os.homedir(), 'Desktop');
+  const htmlPath = path.join(desktopDir, `${baseName}.html`);
+  const pngPath = path.join(desktopDir, `${baseName}.png`);
+
+  await fs.writeFile(htmlPath, html);
+  console.log(`✓ HTML saved → ${htmlPath}`);
+
+  let pngOk = false;
+  for (const browser of ['google-chrome', 'google-chrome-stable', 'chromium-browser', 'chromium']) {
+    try {
+      execSync(`${browser} --headless --disable-gpu --screenshot="${pngPath}" --window-size=850,1200 "file://${htmlPath}"`, { timeout: 15000, stdio: 'ignore' });
+      pngOk = true;
+      break;
+    } catch { /* try next */ }
   }
 
-  // --share: terminal card + markdown clipboard
-  const terminalCard = renderTerminal(clis, mcp, models, burn, scoreResult);
-  console.log(terminalCard);
-
-  const mdCard = renderMarkdown(clis, mcp, models, burn, scoreResult);
-  const copied = copyToClipboard(mdCard);
-  console.log(copied ? '\n✓ Markdown card copied to clipboard!' : '\n(clipboard unavailable — card printed above)');
+  if (pngOk) {
+    console.log(`✓ PNG saved → ${pngPath}`);
+  } else {
+    console.log('(PNG skipped — no Chrome/Chromium found)');
+  }
 }
 
 program.parse();

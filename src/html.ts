@@ -245,9 +245,9 @@ export function renderHtml(
     <div class="rarity">${rarity}</div>
     <div class="grid">
       <div class="section">
-        <h2>🎒 POKÉMON TEAM (${running.length} RUN)</h2>
+        <h2>🎒 AGENTS · Pokémon Team (${running.length} running)</h2>
         ${[...running, ...idle].slice(0, 6).map(c => {
-          const spriteUrl = c.pokemonId ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/${c.pokemonId}.gif` : '';
+          const spriteUrl = c.pokemonSlug ? `https://raw.githubusercontent.com/msikma/pokesprite/master/pokemon-gen8/regular/${c.pokemonSlug}.png` : '';
           const imgHtml = spriteUrl ? `<img class="pokemon-sprite ${c.state.toLowerCase()}" src="${spriteUrl}" alt="${c.name}" width="36" height="36" onload="this.nextElementSibling.style.display='none'" onerror="this.style.display='none'" />` : '';
           return `
             <div class="item">
@@ -263,7 +263,7 @@ export function renderHtml(
         ${clis.length > 6 ? `<div class="item" style="color:#555555; padding-left: 0.5rem; font-family:'Courier New', monospace;">… +${clis.length - 6} MORE</div>` : ''}
       </div>
       <div class="section">
-        <h2>📊 SPECIES MOVEPOOL</h2>
+        <h2>📊 MODELS · Species Movepool</h2>
         ${models.slice(0, 5).map(m => {
           const barClass = m.percentage > 50 ? '' : m.percentage > 20 ? 'warning' : 'critical';
           return `
@@ -281,24 +281,24 @@ export function renderHtml(
         }).join('')}
       </div>
       <div class="section">
-        <h2>🎒 TMs & HMs (${mcp.length} ITEMS)</h2>
+        <h2>🎒 MCP SERVERS · TMs & HMs (${mcp.length})</h2>
         ${sortedMcp.slice(0, 5).map(t => `
           <div class="item">
             <span class="name" style="color:#111111">◆ ${t.name}</span>
-            <span style="color:#555555;font-size:0.8rem">[${t.toolCount} MOVES]</span>
+            <span style="color:#555555;font-size:0.8rem">[${t.toolCount} TOOLS]</span>
           </div>
         `).join('')}
         ${mcp.length > 5 ? `<div class="item" style="color:#555555; padding-left: 0.5rem; font-family:'Courier New', monospace;">… +${mcp.length - 5} MORE</div>` : ''}
       </div>
       <div class="section">
-        <h2>🔋 PP BURN</h2>
-        <div class="metric"><span class="label">PP Tokens</span><span class="value">${fmtTokens(burn.totalTokens)}</span></div>
+        <h2>🔋 TOKEN USAGE · PP Burn</h2>
+        <div class="metric"><span class="label">Tokens (PP)</span><span class="value">${fmtTokens(burn.totalTokens)}</span></div>
         <div class="metric"><span class="label">Cost ($)</span><span class="value">$${burn.estimatedCostUsd.toFixed(2)}/mo</span></div>
-        <div class="metric"><span class="label">PP Velocity</span><span class="value">${fmtTokens(burn.tokenVelocity)}/min</span></div>
-        <div class="metric"><span class="label">Battles</span><span class="value">${burn.sessionCount}</span></div>
+        <div class="metric"><span class="label">Token Rate</span><span class="value">${fmtTokens(burn.tokenVelocity)}/min</span></div>
+        <div class="metric"><span class="label">Sessions</span><span class="value">${burn.sessionCount}</span></div>
         
         <div class="item" style="flex-direction:column; align-items:flex-start; gap: 0.25rem; border-bottom: none;">
-          <span class="label" style="font-size:0.8rem; color:#555555;">HP INTEGRITY</span>
+          <span class="label" style="font-size:0.8rem; color:#555555;">ENV HEALTH (HP)</span>
           <div class="hp-container">
             <span class="hp-label">HP</span>
             <div class="bar-container">

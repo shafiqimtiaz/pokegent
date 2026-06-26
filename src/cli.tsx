@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, Text, useApp, useInput } from 'ink';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 import { scanClis, scanMcp, scanModels, scanBurn } from './scanner/index.js';
 import { score } from './scoring.js';
 import { renderTerminal } from './card.js';
-import { renderMarkdown } from './markdown.js';
 import { renderHtml } from './html.js';
-import { copyToClipboard } from './clipboard.js';
+import { execSync } from 'child_process';
 import { mockClis, mockMcp, mockModels, mockBurn } from './demo.js';
 import { APP_TITLE, REFRESH_INTERVAL, VERSION } from './constants.js';
 import type { CliStatus, McpTool, ModelUsage, BurnMetrics, ScoreResult } from './types.js';
@@ -75,16 +77,35 @@ export function Dashboard({ demo }: DashboardProps) {
     if (input === 'q') exit();
     if (input === 'r') runScan();
     if (input === 's' && scoreResult && burn) {
-      const md = renderMarkdown(clis, mcp, models, burn, scoreResult);
-      const copied = copyToClipboard(md);
-      setLastMessage(copied ? '✓ Card copied to clipboard!' : 'Clipboard unavailable');
-      setTimeout(() => setLastMessage(''), 3000);
-    }
-    if (input === 'h' && scoreResult && burn) {
       const html = renderHtml(clis, mcp, models, burn, scoreResult);
-      const copied = copyToClipboard(html);
-      setLastMessage(copied ? '✓ HTML card copied to clipboard!' : 'Clipboard unavailable');
-      setTimeout(() => setLastMessage(''), 3000);
+      const ts = new Date().toISOString().replace(/[:.]/g, '-');
+      const baseName = `pokegent-${ts}`;
+      const desktopDir = path.join(os.homedir(), 'Desktop');
+      const htmlPath = path.join(desktopDir, `${baseName}.html`);
+      const pngPath = path.join(desktopDir, `${baseName}.png`);
+
+      try {
+        fs.writeFileSync(htmlPath, html);
+      } catch {
+        setLastMessage('✗ Failed to write to Desktop');
+        setTimeout(() => setLastMessage(''), 4000);
+        return;
+      }
+
+      let pngOk = false;
+      for (const browser of ['google-chrome', 'google-chrome-stable', 'chromium-browser', 'chromium']) {
+        try {
+          execSync(`${browser} --headless --disable-gpu --screenshot="${pngPath}" --window-size=850,1200 "file://${htmlPath}"`, { timeout: 15000, stdio: 'ignore' });
+          pngOk = true;
+          break;
+        } catch { /* try next */ }
+      }
+
+      setLastMessage(pngOk
+        ? `✓ Saved → ~/Desktop/${baseName}.html + .png`
+        : `✓ Saved → ~/Desktop/${baseName}.html (PNG: no Chrome found)`
+      );
+      setTimeout(() => setLastMessage(''), 5000);
     }
   });
  
@@ -138,7 +159,7 @@ export function Dashboard({ demo }: DashboardProps) {
           {/* Agents */}
           <Box flexDirection="column" marginBottom={1}>
             <Text bold color="blue">
-              🎒 POKÉMON TEAM ({running.length} running)
+              🎒 AGENTS · Pokémon Team ({running.length} running)
             </Text>
             {clis.slice(0, 8).map((c, i) => (
               <Box key={i}>
@@ -162,7 +183,7 @@ export function Dashboard({ demo }: DashboardProps) {
           {/* MCP */}
           <Box flexDirection="column">
             <Text bold color="yellow">
-              🎒 TMs & HMs (MCP) ({mcp.length} items, {totalTools} moves)
+              🎒 MCP SERVERS · TMs & HMs ({mcp.length} servers, {totalTools} tools)
             </Text>
             {[...mcp].sort((a, b) => b.toolCount - a.toolCount).slice(0, 6).map((t, i) => (
               <Box key={i}>
@@ -179,7 +200,7 @@ export function Dashboard({ demo }: DashboardProps) {
           {/* Models */}
           <Box flexDirection="column" marginBottom={1}>
             <Text bold color="magenta">
-              📊 SPECIES MOVEPOOL
+              📊 MODELS · Species Movepool
             </Text>
             {models.slice(0, 6).map((m, i) => {
               const filled = Math.floor(m.percentage / 100 * 10);
@@ -198,13 +219,13 @@ export function Dashboard({ demo }: DashboardProps) {
           {burn && (
             <Box flexDirection="column">
               <Text bold color="red">
-                🔋 PP BURN
+                🔋 TOKEN USAGE · PP Burn
               </Text>
-              <Text>  PP (Tokens)   {burn.totalTokens >= 1_000_000 ? `${(burn.totalTokens / 1_000_000).toFixed(1)}M` : `${(burn.totalTokens / 1_000).toFixed(1)}K`}</Text>
+              <Text>  Tokens (PP)   {burn.totalTokens >= 1_000_000 ? `${(burn.totalTokens / 1_000_000).toFixed(1)}M` : `${(burn.totalTokens / 1_000).toFixed(1)}K`}</Text>
               <Text>  Cost ($)      ${burn.estimatedCostUsd.toFixed(2)}/mo</Text>
-              <Text>  PP Velocity   {burn.tokenVelocity >= 1_000 ? `${(burn.tokenVelocity / 1_000).toFixed(1)}K` : burn.tokenVelocity}/min</Text>
-              <Text>  Battles       {burn.sessionCount}</Text>
-              <Text>  HP Integrity  {burn.envIntegrity >= 0.8 ? '🟢' : burn.envIntegrity >= 0.5 ? '🟡' : '🔴'} {Math.round(burn.envIntegrity * 100)}%</Text>
+              <Text>  Token Rate    {burn.tokenVelocity >= 1_000 ? `${(burn.tokenVelocity / 1_000).toFixed(1)}K` : burn.tokenVelocity}/min</Text>
+              <Text>  Sessions      {burn.sessionCount}</Text>
+              <Text>  Env Health    {burn.envIntegrity >= 0.8 ? '🟢' : burn.envIntegrity >= 0.5 ? '🟡' : '🔴'} {Math.round(burn.envIntegrity * 100)}%</Text>
             </Box>
           )}
         </Box>
@@ -227,7 +248,7 @@ export function Dashboard({ demo }: DashboardProps) {
         <Text color="gray">
           <Text color="green">● {demo ? 'DEMO' : 'LIVE'}</Text> │ Scan: {scanTime.toFixed(1)}s │ {new Date().toLocaleTimeString()}
         </Text>
-        <Text color="gray">q quit │ r refresh │ s share │ h html</Text>
+        <Text color="gray">q quit │ r refresh │ s share</Text>
       </Box>
 
       {/* Message */}

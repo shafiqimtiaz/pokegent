@@ -20,8 +20,8 @@ export function renderMarkdown(
     '│                                                          │',
   ];
 
-  const leftHeader = `🎒 POKÉMON TEAM (${running.length} run)`.padEnd(26);
-  const rightHeader = `📊 SPECIES MOVEPOOL`.padEnd(23);
+  const leftHeader = `🎒 AGENTS (${running.length} run)`.padEnd(26);
+  const rightHeader = `📊 MODELS`.padEnd(23);
   lines.push(`│  ${leftHeader}  │  ${rightHeader}  │`);
 
   // Pokémon + Species Movepool rows
@@ -52,8 +52,8 @@ export function renderMarkdown(
   lines.push('│                                                          │');
   
   const totalTools = mcp.reduce((sum, t) => sum + t.toolCount, 0);
-  const leftHeader2 = `🎒 TMs & HMs (${mcp.length})`.padEnd(26);
-  const rightHeader2 = `🔋 PP BURN (${totalTools} moves)`.padEnd(23);
+  const leftHeader2 = `🎒 MCP (${mcp.length} servers)`.padEnd(26);
+  const rightHeader2 = `🔋 TOKENS (${totalTools} tools)`.padEnd(23);
   lines.push(`│  ${leftHeader2}  │  ${rightHeader2}  │`);
 
   // TMs/HMs + PP Burn rows
@@ -65,10 +65,10 @@ export function renderMarkdown(
   }
 
   const burnLines = [
-    `PP Tokens   ${fmtTokens(burn.totalTokens)}`,
+    `Tokens      ${fmtTokens(burn.totalTokens)}`,
     `Cost ($)    $${burn.estimatedCostUsd.toFixed(2)}/mo`,
-    `PP/min      ${fmtTokens(burn.tokenVelocity)}/min`,
-    `Battles     ${burn.sessionCount}`,
+    `Rate/min    ${fmtTokens(burn.tokenVelocity)}/min`,
+    `Sessions    ${burn.sessionCount}`,
   ];
 
   const maxRows2 = Math.max(mcpLines.length, burnLines.length);

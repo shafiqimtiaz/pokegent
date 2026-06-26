@@ -61,11 +61,11 @@ export function renderTerminal(
 
   // PP Burn section
   const burnLines = [
-    `  PP Tokens ${fmtTokens(burn.totalTokens)}`,
+    `  Tokens    ${fmtTokens(burn.totalTokens)}`,
     `  Cost ($)  $${burn.estimatedCostUsd.toFixed(2)}/mo`,
-    `  PP/min    ${fmtTokens(burn.tokenVelocity)}/min`,
-    `  Battles   ${burn.sessionCount}`,
-    `  HP (Intg) ${bar(burn.envIntegrity * 100, 10)} ${Math.round(burn.envIntegrity * 100)}%`,
+    `  Rate/min  ${fmtTokens(burn.tokenVelocity)}/min`,
+    `  Sessions  ${burn.sessionCount}`,
+    `  Health    ${bar(burn.envIntegrity * 100, 10)} ${Math.round(burn.envIntegrity * 100)}%`,
   ];
 
   // Badges
@@ -83,8 +83,8 @@ export function renderTerminal(
     `│${' '.repeat(w)}│`,
   ];
 
-  const leftHeader = `🎒 POKÉMON TEAM (${running.length} run)`.padEnd(28);
-  const rightHeader = `📊 SPECIES MOVEPOOL`.padEnd(24);
+  const leftHeader = `🎒 AGENTS (${running.length} run)`.padEnd(28);
+  const rightHeader = `📊 MODELS`.padEnd(24);
   lines.push(`│  ${leftHeader}  ${rightHeader}│`);
 
   // Two-column: agents + models
@@ -98,8 +98,8 @@ export function renderTerminal(
   lines.push(`│${' '.repeat(w)}│`);
   
   const totalTools = mcp.reduce((sum, t) => sum + t.toolCount, 0);
-  const leftHeader2 = `🎒 TMs & HMs (${mcp.length})`.padEnd(26);
-  const rightHeader2 = `🔋 PP BURN (${totalTools} moves)`.padEnd(24);
+  const leftHeader2 = `🎒 MCP (${mcp.length} servers)`.padEnd(26);
+  const rightHeader2 = `🔋 TOKENS (${totalTools} tools)`.padEnd(24);
   lines.push(`│  ${leftHeader2}  ${rightHeader2}│`);
 
   // Two-column: MCP + Burn
