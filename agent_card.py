@@ -539,6 +539,35 @@ def _rarity_label(score: int) -> str:
     return "🌱 STARTER — everyone starts here"
 
 
+def copy_to_clipboard(text: str) -> bool:
+    """Copy text to system clipboard. Returns True on success."""
+    import subprocess
+    import platform
+
+    system = platform.system()
+    try:
+        if system == "Darwin":
+            subprocess.run(["pbcopy"], input=text.encode(), check=True)
+        elif system == "Linux":
+            # Try xsel, then xclip, then wl-copy
+            for cmd in [["xsel", "--clipboard", "--input"],
+                        ["xclip", "-selection", "clipboard"],
+                        ["wl-copy"]]:
+                try:
+                    subprocess.run(cmd, input=text.encode(), check=True)
+                    return True
+                except FileNotFoundError:
+                    continue
+            return False
+        elif system == "Windows":
+            subprocess.run(["clip"], input=text.encode(), check=True)
+        else:
+            return False
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 #  SCANNER ENGINE (local only — zero network)
 # ═══════════════════════════════════════════════════════════════════════════
