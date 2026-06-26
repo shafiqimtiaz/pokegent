@@ -1,6 +1,6 @@
 {
   "name": "pokegent",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Terminal dashboard that shows your Pokémon AI coding ecosystem. Press 's' to flex.",
   "type": "module",
   "bin": {
