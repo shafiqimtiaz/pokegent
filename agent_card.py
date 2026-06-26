@@ -1293,9 +1293,35 @@ def main():
         help="Run in demo mode with mock data",
     )
     parser.add_argument(
+        "--share", action="store_true",
+        help="Scan, render card to stdout, copy markdown to clipboard, and exit",
+    )
+    parser.add_argument(
         "--version", action="version", version=f"AgentCard {VERSION}",
     )
     args = parser.parse_args()
+
+    if args.share:
+        scanner = Scanner(demo=args.demo)
+        scorer = Scorer()
+        card = ShareCard()
+
+        clis = scanner.scan_clis()
+        mcp = scanner.scan_mcp()
+        models = scanner.scan_models()
+        burn = scanner.scan_burn()
+        score = scorer.score(clis, mcp, models, burn)
+
+        terminal_card = card.render_terminal(clis, mcp, models, burn, score)
+        print(terminal_card)
+
+        md_card = card.render_markdown(clis, mcp, models, burn, score)
+        copied = copy_to_clipboard(md_card)
+        if copied:
+            print("\n✓ Markdown card copied to clipboard!")
+        else:
+            print("\n(clipboard unavailable — card printed above)")
+        sys.exit(0)
 
     app = AgentCardApp(demo=args.demo)
     app.run()
