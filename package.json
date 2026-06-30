@@ -1,6 +1,6 @@
 {
   "name": "agentradar",
-  "version": "2.0.3",
+  "version": "2.1.0",
   "description": "Terminal dashboard that monitors your local AI tooling ecosystem — coding agents, MCP servers, LLM models, and token metrics.",
   "type": "module",
   "bin": {
