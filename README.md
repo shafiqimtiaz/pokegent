@@ -1,75 +1,65 @@
-<!-- prettier-ignore -->
 <div align="center">
 
-# ◓ Pokégent
+# agentradar
 
 [![Node.js](https://img.shields.io/badge/node-18%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
 [![Ink](https://img.shields.io/badge/ink-5.0%2B-ff7700?style=flat-square)](https://github.com/vadimdemedes/ink)
-<br>
-[![GitHub release](https://img.shields.io/github/v/release/shafiqimtiaz/pokegent?style=flat-square&logo=github)](https://github.com/shafiqimtiaz/pokegent/releases)
-[![GitHub stars](https://img.shields.io/github/stars/shafiqimtiaz/pokegent?style=flat-square)](https://github.com/shafiqimtiaz/pokegent)
+[![GitHub release](https://img.shields.io/github/v/release/shafiqimtiaz/aiscope?style=flat-square&logo=github)](https://github.com/shafiqimtiaz/aiscope/releases)
 
-Terminal dashboard that scans and monitors your Pokémon AI coding ecosystem — 16 Pokémon species (CLI) detectors, TMs/HMs (MCP) discovery, movepool usage charts, PP burn metrics, and a shareable HTML Trainer Card.
+Terminal dashboard that monitors your local AI tooling ecosystem — coding agents, MCP servers, LLM models, and token metrics. One unified view.
 
 [Features](#features) • [Installation](#installation) • [Usage](#usage) • [Scoring](#scoring) • [Privacy](#privacy)
 
 </div>
 
-Pokégent is a Node.js TUI that scans your local machine to give you a live picture of your Pokémon AI tooling landscape. It detects running AI processes as active Pokémon, discovers installed TMs/HMs (MCP servers), tallies movepool (model) usage from history, and measures PP burn rates (tokens) — all locally, with zero outbound network requests.
+agentradar is a Node.js TUI that scans your local machine to give you a live picture of your AI tooling landscape. It detects running AI processes as active agents, discovers installed MCP servers/skills, tallies model usage from history, and measures token burn rates — all locally, with zero outbound network requests.
 
 > [!NOTE]
-> Pokégent runs entirely locally. It reads the process table, configuration directories, and local log files on your machine to render the results in your terminal. No telemetry, no network calls.
+> agentradar runs entirely locally. It reads the process table, configuration directories, and local log files on your machine to render the results in your terminal. No telemetry, no network calls.
 
 ---
 
 ## Features
 
-- **16 Pokémon Species Detectors** — Scans for running AI platforms represented as Pokémon (Mewtwo, Pikachu, Eevee, Gengar, Snorlax, Charizard, etc.).
-- **TM/HM (MCP) Discovery** — Aggregates installed tool servers from standard config paths (Claude, Cursor, OpenCode, n8n, etc.).
-- **Movepool Frequency Charts** — Analyzes shell history and log files for model name patterns, rendering horizontal ASCII bars.
-- **PP Burn Analytics** — Measures battles (sessions), PP velocity (tokens/min), input/output splits, and estimated token costs.
-- **Trainer Level Scoring** — Calculates a score from 0-1000 across your active roster, moves, and items.
-- **7 Trainer Badges** — Earn badges like `Pokédex Master`, `Blast Burn`, or `Thunder Shock` based on your setup.
-- **HTML Trainer Card** — Generates a self-contained, GameBoy-style HTML card featuring animated showdown sprites for active Pokémon.
+- **16 CLI Detectors** — Scans for running AI platforms (Claude Code, Codex, Copilot, Gemini CLI, Cursor, Amp, Cline, Roo Code, Kilo Code, Kiro, Crush, OpenCode, Factory Droid, Antigravity, Kimi CLI, Qwen Code).
+- **MCP Server Discovery** — Aggregates installed tool servers from standard config paths (Claude, Cursor, OpenCode, n8n, etc.).
+- **Model Usage Frequency Charts** — Analyzes shell history and log files for model name patterns, rendering horizontal ASCII bars.
+- **Token Burn Analytics** — Measures sessions, token velocity (tokens/min), input/output splits, and estimated token costs.
+- **System Scoring** — Calculates a score from 0-1000 across your active agents, MCP servers, models, and token metrics.
+- **6 System Badges** — Earn badges like `Toolsmith`, `Multi-Provider`, or `High Throughput` based on your setup.
 
 ---
 
 ## Installation
 
-You can run and install Pokégent using the following methods:
+You can run and install agentradar using the following methods:
 
 ### 1. Run directly (Zero Install)
-The quickest way to run Pokégent is using `npx`:
+
 ```bash
-npx pokegent
+npx agentradar
 ```
 
 ### 2. Global Installation
-To install Pokégent globally on your system:
+
 ```bash
-npm install -g pokegent
-```
-Once installed, you can start the TUI dashboard by typing:
-```bash
-pokegent
+npm install -g agentradar
 ```
 
-### 3. Build & Run from Source (Local Development)
-If you want to run or modify the code locally:
-```bash
-# Clone the repository
-git clone https://github.com/shafiqimtiaz/pokegent.git
-cd pokegent
+Once installed, start the TUI dashboard by typing:
 
-# Install dependencies
+```bash
+agentradar
+```
+
+### 3. Build & Run from Source
+
+```bash
+git clone https://github.com/shafiqimtiaz/aiscope.git
+cd aiscope
 npm install
-
-# Build the project (compiles TypeScript to dist/index.js)
 npm run build
-
-# Start the dashboard
 npm start
-
 # Run with demo mock data
 node dist/index.js --demo
 ```
@@ -78,87 +68,76 @@ node dist/index.js --demo
 
 ## Usage
 
-Run Pokégent with optional flags to generate reports or export data:
-
 ```bash
 # Start TUI dashboard with live local scans
-pokegent
+agentradar
 
 # Start TUI dashboard in demo mode (with realistic mock data)
-pokegent --demo
-
-# Generate a markdown Trainer Card and copy it to the clipboard
-pokegent --share
-
-# Export stats as a GameBoy-style HTML card file (pokegent.html)
-pokegent --html
+agentradar --demo
 
 # Export scanned data in raw JSON format
-pokegent --json
+ agentradar --json
 ```
 
 ### Keyboard Shortcuts (TUI Mode)
 
 | Key | Action |
 |-----|--------|
-| `q` | Quit Pokégent |
+| `q` | Quit agentradar |
 | `r` | Force an immediate scan refresh |
-| `s` | Share setup (copies markdown card to clipboard) |
-| `h` | Generate HTML Trainer Card (`pokegent.html`) |
 
 ---
 
 ## Scoring
 
-Your roster, moves, and items get scored up to 1000 points:
+Your agents, MCP servers, models, and token usage get scored up to 1000 points:
 
 | Dimension | Max Points | How |
 |-----------|-----------|-----|
-| **Pokémon Running** | 350 pts | 75 pts per active Pokémon (cap 4) + 50 pts bonus for 3+ simultaneous |
-| **TMs & HMs (MCP)** | 200 pts | 10 pts per server (cap 15) + 1 pt per tool/move (cap 50) |
-| **Movepool Diversity** | 200 pts | 30 pts per unique model (cap 5) + 50 pts for using 3+ providers |
-| **PP Velocity + Battles** | 250 pts | Velocity levels + session/battle count |
+| **Agents Running** | 350 pts | 75 pts per active agent (cap 4) + 50 pts bonus for 3+ simultaneous |
+| **MCP Servers & Skills** | 200 pts | 10 pts per server (cap 15) + 1 pt per tool/move (cap 50) |
+| **Model Diversity** | 200 pts | 30 pts per unique model (cap 5) + 50 pts for using 3+ providers |
+| **Token Velocity + Sessions** | 250 pts | Velocity levels + session count |
 
 ### Rarity Tiers
 
-Based on your score, you are assigned a Trainer Tier:
-- **900+** — 🌟 MYTHICAL CHAMPION (Top 1%)
-- **750+** — 💎 SHINY LEGENDARY (Top 5%)
-- **600+** — 🥇 POKÉMON MASTER (Top 15%)
-- **400+** — 🥈 GYM LEADER (Top 35%)
-- **200+** — 🥉 ELITE TRAINER (Top 60%)
-- **<200** — 🌱 BEGINNER TRAINER (Rookie level)
+- **900+** — ELITE ARCHITECT (Top 1%)
+- **750+** — EXPERT SYSTEM (Top 5%)
+- **600+** — ADVANCED SYSTEM (Top 15%)
+- **400+** — SYSTEM ADMINISTRATOR (Top 35%)
+- **200+** — SYSTEM OPERATOR (Top 60%)
+- **<200** — SYSTEM INITIALIZED (Rookie level)
 
 ---
 
 ## What gets scanned
 
 <details>
-<summary><strong>16 Pokémon Species & CLI Mappings</strong></summary>
+<summary><strong>16 CLI Platform Detectors</strong></summary>
 
-| Pokémon | CLI Platform | Process keyword | Config path |
-|---------|--------------|-----------------|-------------|
-| **Mewtwo** | Claude Code | `claude*` | `~/.claude` |
-| **Venusaur** | Codex | `codex*` | `~/.codex` |
-| **Blastoise** | GitHub Copilot CLI | `copilot*` | `~/.copilot` |
-| **Pikachu** | Gemini CLI | `gemini*` | `~/.gemini` |
-| **Eevee** | Cursor | `cursor` | `~/.cursor` |
-| **Charizard** | Amp | `amp*` | `~/.amp` |
-| **Charmander** | Cline | — | `~/.cline` |
-| **Gengar** | Roo Code | `roo*` | `~/.roo` |
-| **Snorlax** | Kilo Code | `kilo*` | `~/.kilo` |
-| **Zubat** | Kiro | `kiro` | `~/.kiro` |
-| **Jigglypuff** | Crush | — | `~/.crush` |
-| **Ditto** | OpenCode | `opencode` | `~/.opencode` |
-| **Machamp** | Factory Droid | `factory-droid` | `~/.factory-droid` |
-| **Rayquaza** | Antigravity | `antigravity*` | `~/.antigravity` |
-| **Lapras** | Kimi CLI | `kimi*` | `~/.kimi` |
-| **Dragonite** | Qwen Code | `qwen*` | `~/.qwen` |
+| Platform | Process keyword | Config path |
+|----------|----------------|-------------|
+| Claude Code | `claude*` | `~/.claude` |
+| Codex | `codex*` | `~/.codex` |
+| GitHub Copilot CLI | `copilot*` | `~/.copilot` |
+| Gemini CLI | `gemini*` | `~/.gemini` |
+| Cursor | `cursor` | `~/.cursor` |
+| Amp | `amp*` | `~/.amp` |
+| Cline | — | `~/.cline` |
+| Roo Code | `roo*` | `~/.roo` |
+| Kilo Code | `kilo*` | `~/.kilo` |
+| Kiro | `kiro` | `~/.kiro` |
+| Crush | — | `~/.crush` |
+| OpenCode | `opencode` | `~/.opencode` |
+| Factory Droid | `factory-droid` | `~/.factory-droid` |
+| Antigravity | `antigravity*` | `~/.antigravity` |
+| Kimi CLI | `kimi*` | `~/.kimi` |
+| Qwen Code | `qwen*` | `~/.qwen` |
 
 </details>
 
 <details>
-<summary><strong>Scanned Moves & Models (19 patterns)</strong></summary>
+<summary><strong>Scanned Models (19 patterns)</strong></summary>
 
 Scans for occurrences of the following model families in your local history and logs:
 - `claude-4-opus`, `claude-4-sonnet`, `claude-3.7-sonnet`, `claude-3.5-sonnet`, `claude-3-haiku`
@@ -172,4 +151,4 @@ Scans for occurrences of the following model families in your local history and 
 
 ## Privacy
 
-Pokégent runs 100% locally. No data leaves your machine. No telemetry. No analytics. No outbound network requests are made during scanning. All log file parsing, process checking, and configuration scans happen entirely on your computer.
+agentradar runs 100% locally. No data leaves your machine. No telemetry. No analytics. No outbound network requests are made during scanning. All log file parsing, process checking, and configuration scans happen entirely on your computer.

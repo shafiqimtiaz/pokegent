@@ -4,33 +4,27 @@ import { render } from 'ink';
 import { Command } from 'commander';
 import { scanClis, scanMcp, scanModels, scanBurn } from './scanner/index.js';
 import { score } from './scoring.js';
-import { renderHtml } from './html.js';
 import { mockClis, mockMcp, mockModels, mockBurn } from './demo.js';
 import { VERSION } from './constants.js';
 import { Dashboard } from './cli.js';
-import fs from 'fs/promises';
-import path from 'path';
-import os from 'os';
 
 interface Opts {
   demo?: boolean;
-  share?: boolean;
   json?: boolean;
 }
 
 const program = new Command();
 
 program
-  .name('pokegent')
-  .description('Terminal dashboard that shows your Pokémon AI coding ecosystem')
+  .name('agentradar')
+  .description('Terminal dashboard that monitors your local AI tooling ecosystem')
   .version(VERSION);
 
 program
   .option('--demo', 'Run with mock data')
-  .option('--share', 'Generate HTML card on ~/Desktop')
   .option('--json', 'Export raw data as JSON')
   .action(async (opts: Opts) => {
-    if (opts.share || opts.json) {
+    if (opts.json) {
       await runOneShot(opts);
     } else {
       const { waitUntilExit } = render(React.createElement(Dashboard, { demo: opts.demo ?? false }));
@@ -61,16 +55,6 @@ async function runOneShot(opts: Opts) {
     console.log(JSON.stringify({ clis, mcp, models, burn, score: scoreResult }, null, 2));
     return;
   }
-
-  // --share: HTML to Desktop
-  const html = renderHtml(clis, mcp, models, burn, scoreResult);
-  const ts = new Date().toISOString().replace(/[:.]/g, '-');
-  const baseName = `pokegent-${ts}`;
-  const desktopDir = path.join(os.homedir(), 'Desktop');
-  const htmlPath = path.join(desktopDir, `${baseName}.html`);
-
-  await fs.writeFile(htmlPath, html);
-  console.log(`✓ HTML saved → ${htmlPath}`);
 }
 
 program.parse();

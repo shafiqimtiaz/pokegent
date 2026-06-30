@@ -1,12 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, Text, useApp, useInput } from 'ink';
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
 import { scanClis, scanMcp, scanModels, scanBurn } from './scanner/index.js';
 import { score } from './scoring.js';
-import { renderTerminal } from './card.js';
-import { renderHtml } from './html.js';
 import { mockClis, mockMcp, mockModels, mockBurn } from './demo.js';
 import { APP_TITLE, REFRESH_INTERVAL, VERSION } from './constants.js';
 import type { CliStatus, McpTool, ModelUsage, BurnMetrics, ScoreResult } from './types.js';
@@ -75,21 +70,6 @@ export function Dashboard({ demo }: DashboardProps) {
   useInput((input, key) => {
     if (input === 'q') exit();
     if (input === 'r') runScan();
-    if (input === 's' && scoreResult && burn) {
-      const html = renderHtml(clis, mcp, models, burn, scoreResult);
-      const ts = new Date().toISOString().replace(/[:.]/g, '-');
-      const baseName = `pokegent-${ts}`;
-      const desktopDir = path.join(os.homedir(), 'Desktop');
-      const htmlPath = path.join(desktopDir, `${baseName}.html`);
-
-      try {
-        fs.writeFileSync(htmlPath, html);
-        setLastMessage(`✓ HTML saved → ~/Desktop/${baseName}.html`);
-      } catch {
-        setLastMessage('✗ Failed to write HTML to Desktop');
-      }
-      setTimeout(() => setLastMessage(''), 4000);
-    }
   });
  
   if (clis.length === 0) {
@@ -102,7 +82,7 @@ export function Dashboard({ demo }: DashboardProps) {
         </Box>
         <Box marginTop={2} marginBottom={2} flexDirection="column" gap={1}>
           <Text bold color="yellow">
-            ◓ Scanning Pokémon coding ecosystem...
+            ◓ Scanning AI coding ecosystem...
           </Text>
           <Text color="gray">
             (First live scan takes a few seconds to recursively search local logs & history)
@@ -143,7 +123,7 @@ export function Dashboard({ demo }: DashboardProps) {
           {/* Agents */}
           <Box flexDirection="column" marginBottom={1}>
             <Text bold color="blue">
-              🎒 AGENTS ({running.length} active)
+              AGENTS ({running.length} active)
             </Text>
             {clisDetected.slice(0, 8).map((c, i) => (
               <Box key={i}>
@@ -167,7 +147,7 @@ export function Dashboard({ demo }: DashboardProps) {
           {/* MCP */}
           <Box flexDirection="column">
             <Text bold color="yellow">
-              🎒 MCP SERVERS · Skills ({mcp.length} servers, {totalTools} skills)
+              MCP SERVERS · Skills ({mcp.length} servers, {totalTools} skills)
             </Text>
             {[...mcp].sort((a, b) => b.toolCount - a.toolCount).slice(0, 6).map((t, i) => (
               <Box key={i}>
@@ -184,7 +164,7 @@ export function Dashboard({ demo }: DashboardProps) {
           {/* Models */}
           <Box flexDirection="column" marginBottom={1}>
             <Text bold color="magenta">
-              📊 MODELS · Active List
+              AI MODELS
             </Text>
             {models.slice(0, 6).map((m, i) => {
               const filled = Math.floor(m.percentage / 100 * 10);
@@ -203,7 +183,7 @@ export function Dashboard({ demo }: DashboardProps) {
           {burn && (
             <Box flexDirection="column">
               <Text bold color="red">
-                🔋 SYSTEM METRICS
+                SYSTEM METRICS
               </Text>
               <Text>  Tokens        {burn.totalTokens >= 1_000_000 ? `${(burn.totalTokens / 1_000_000).toFixed(1)}M` : `${(burn.totalTokens / 1_000).toFixed(1)}K`}</Text>
               <Text>  Cost ($)      ${burn.estimatedCostUsd.toFixed(2)}/mo</Text>
@@ -218,7 +198,7 @@ export function Dashboard({ demo }: DashboardProps) {
       {/* Badges */}
       {scoreResult && scoreResult.badges.length > 0 && (
         <Box marginTop={1} flexDirection="column">
-          <Text bold color="yellow">🏅 BADGES</Text>
+          <Text bold color="yellow">BADGES</Text>
           <Box flexWrap="wrap" gap={1}>
             {scoreResult.badges.map((b, i) => (
               <Text key={i} color="yellow">{b}</Text>
@@ -232,7 +212,7 @@ export function Dashboard({ demo }: DashboardProps) {
         <Text color="gray">
           <Text color="green">● {demo ? 'DEMO' : 'LIVE'}</Text> │ Scan: {scanTime.toFixed(1)}s │ {new Date().toLocaleTimeString()}
         </Text>
-        <Text color="gray">q quit │ r refresh │ s share</Text>
+        <Text color="gray">q quit │ r refresh</Text>
       </Box>
 
       {/* Message */}

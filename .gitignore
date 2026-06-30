@@ -8,3 +8,4 @@ build/
 node_modules/
 *.tsbuildinfo
 pokegent.html
+agent-fetch.html
